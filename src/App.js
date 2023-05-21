@@ -14,6 +14,8 @@ function App() {
 
   useEffect(() => {
     const initialize = async () => {
+      console.log(contractAbi)
+
       if (window.ethereum) {
         // creates a new web3 instance
         const web3Instance = new Web3(window.ethereum)
@@ -31,12 +33,24 @@ function App() {
       }
     }
     initialize()
-  }, [])
+  }, [contractAbi, contractAddress])
 
   const handlePayMe = async () => {
     if (contract && accounts.length > 0) {
-      const amountToSend = web3.utils.toWei("0.05", "ether") // change later to let patron determine amount
-      await contract.methods.sendTip(contractAddress, amountToSend).send({ from: accounts[0], value: amountToSend})
+      const amountToSend = web3.utils.toWei("0.05", "ether") 
+      
+      try {
+        await contract.methods.sendTip(contractAddress, amountToSend)
+                      .send({ from: accounts[0], value: amountToSend});
+      } catch (error) {
+        if (error.code === 4001) {
+          // User rejected transaction
+          alert('Transaction was rejected by user');
+        } else {
+          // Other error
+          console.error(error);
+        }
+      }
     }
   }
 
